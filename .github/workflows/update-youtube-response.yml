@@ -1,0 +1,66 @@
+name: Update YouTube Response Script
+
+on:
+  schedule:
+    # Run daily at 2:00 AM UTC
+    - cron: "0 2 * * *"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  check-and-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download latest upstream file
+        run: |
+          curl -o /tmp/upstream-youtube.response.js \
+            https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js
+
+      - name: Compare files
+        id: compare
+        run: |
+          if ! cmp -s youtube.response.js /tmp/upstream-youtube.response.js; then
+            echo "Files are different - update needed"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          else
+            echo "Files are identical - no update needed"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update local file
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          cp /tmp/upstream-youtube.response.js youtube.response.js
+
+      - name: Configure Git
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit and push changes
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          git add youtube.response.js
+          git commit -m "chore: update youtube.response.js from upstream
+
+          Updated from: https://github.com/Maasea/sgmodule/blob/master/Script/Youtube/youtube.response.js
+          Auto-updated by GitHub Actions on $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          git push
+
+      - name: Create summary
+        run: |
+          if [ "${{ steps.compare.outputs.needs_update }}" == "true" ]; then
+            echo "✅ **File Updated**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The youtube.response.js file has been updated from upstream." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **No Update Needed**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The youtube.response.js file is already up to date." >> $GITHUB_STEP_SUMMARY
+          fi
