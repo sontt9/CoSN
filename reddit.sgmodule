@@ -1,0 +1,18 @@
+#!name = Reddit🚫广告与会员解锁
+#!desc = 去广告，去 NSFW 提示，解锁会员功能
+#!author = 🅜ⓘ🅚ⓔ🅟ⓗ🅘ⓔ
+#!category = 🚫广告
+#!icon = https://raw.githubusercontent.com/Mikephie/icons/main/icon/reddit.png
+#https://github.com/Mikephie/Script/blob/main/surge/reddit-2.sgmodule
+#appCategory = select,"✅签到","🚫广告","🔐APP","🛠️工具"
+
+[General]
+force-http-engine-hosts = %APPEND% gql.reddit.com, gql-fed.reddit.com
+
+[Script]
+# 统一广告去除和会员解锁处理
+redditvip = type=http-response, pattern=^https:\/\/gql-fed\.reddit\.com\/, requires-body=true, max-size=0, script-path=https://raw.githubusercontent.com/Mikephie/Script/main/qx/redditvip.js, timeout=60
+
+
+[MITM]
+hostname = %APPEND% gql.reddit.com, gql-fed.reddit.com
