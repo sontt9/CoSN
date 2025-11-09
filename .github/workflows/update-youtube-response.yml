@@ -45,6 +45,8 @@ jobs:
           sed -i 's/{{{屏蔽上传按钮}}}/true/g' /tmp/upstream-youtube.sgmodule.modified
           sed -i 's/{{{屏蔽选段按钮}}}/true/g' /tmp/upstream-youtube.sgmodule.modified
           sed -i 's/{{{屏蔽Shorts按钮}}}/false/g' /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{启用调试模式}}}}/false/g' /tmp/upstream-youtube.sgmodule.modified
+
 
           # Compare with the modified upstream version
           if ! cmp -s youtube.sgmodule /tmp/upstream-youtube.sgmodule.modified; then
