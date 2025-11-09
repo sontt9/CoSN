@@ -16,26 +16,60 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download latest upstream file
+      - name: Download latest upstream files
         run: |
           curl -o /tmp/upstream-youtube.response.js \
             https://raw.githubusercontent.com/Maasea/sgmodule/master/Script/Youtube/youtube.response.js
+          curl -o /tmp/upstream-youtube.sgmodule \
+            https://raw.githubusercontent.com/Maasea/sgmodule/master/YouTube.Enhance.sgmodule
 
       - name: Compare files
         id: compare
         run: |
+          NEEDS_UPDATE=false
+
+          # Compare youtube.response.js
           if ! cmp -s youtube.response.js /tmp/upstream-youtube.response.js; then
-            echo "Files are different - update needed"
-            echo "needs_update=true" >> $GITHUB_OUTPUT
+            echo "youtube.response.js: Files are different - update needed"
+            echo "js_needs_update=true" >> $GITHUB_OUTPUT
+            NEEDS_UPDATE=true
           else
-            echo "Files are identical - no update needed"
-            echo "needs_update=false" >> $GITHUB_OUTPUT
+            echo "youtube.response.js: Files are identical - no update needed"
+            echo "js_needs_update=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Update local file
-        if: steps.compare.outputs.needs_update == 'true'
+          # Apply replacements to upstream sgmodule for comparison
+          cp /tmp/upstream-youtube.sgmodule /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{歌词翻译语言}}}/off/g' /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{字幕翻译语言}}}/off/g' /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{屏蔽上传按钮}}}/true/g' /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{屏蔽选段按钮}}}/true/g' /tmp/upstream-youtube.sgmodule.modified
+          sed -i 's/{{{屏蔽Shorts按钮}}}/false/g' /tmp/upstream-youtube.sgmodule.modified
+
+          # Compare with the modified upstream version
+          if ! cmp -s youtube.sgmodule /tmp/upstream-youtube.sgmodule.modified; then
+            echo "youtube.sgmodule: Files are different - update needed"
+            echo "sgmodule_needs_update=true" >> $GITHUB_OUTPUT
+            NEEDS_UPDATE=true
+          else
+            echo "youtube.sgmodule: Files are identical - no update needed"
+            echo "sgmodule_needs_update=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "needs_update=$NEEDS_UPDATE" >> $GITHUB_OUTPUT
+
+      - name: Update youtube.response.js
+        if: steps.compare.outputs.js_needs_update == 'true'
         run: |
           cp /tmp/upstream-youtube.response.js youtube.response.js
+
+      - name: Update and modify youtube.sgmodule
+        if: steps.compare.outputs.sgmodule_needs_update == 'true'
+        run: |
+          # Use the already-modified version from the compare step
+          cp /tmp/upstream-youtube.sgmodule.modified youtube.sgmodule
+
+          echo "Applied upstream youtube.sgmodule with custom replacements"
 
       - name: Configure Git
         if: steps.compare.outputs.needs_update == 'true'
@@ -46,21 +80,44 @@ jobs:
       - name: Commit and push changes
         if: steps.compare.outputs.needs_update == 'true'
         run: |
-          git add youtube.response.js
-          git commit -m "chore: update youtube.response.js from upstream
+          FILES_UPDATED=""
 
-          Updated from: https://github.com/Maasea/sgmodule/blob/master/Script/Youtube/youtube.response.js
+          if [ "${{ steps.compare.outputs.js_needs_update }}" == "true" ]; then
+            git add youtube.response.js
+            FILES_UPDATED="${FILES_UPDATED}youtube.response.js "
+          fi
+
+          if [ "${{ steps.compare.outputs.sgmodule_needs_update }}" == "true" ]; then
+            git add youtube.sgmodule
+            FILES_UPDATED="${FILES_UPDATED}youtube.sgmodule "
+          fi
+
+          git commit -m "chore: update YouTube files from upstream
+
+          Updated files: ${FILES_UPDATED}
+          Source: https://github.com/Maasea/sgmodule
           Auto-updated by GitHub Actions on $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
           git push
 
       - name: Create summary
         run: |
           if [ "${{ steps.compare.outputs.needs_update }}" == "true" ]; then
-            echo "✅ **File Updated**" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **Files Updated**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "The youtube.response.js file has been updated from upstream." >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ steps.compare.outputs.js_needs_update }}" == "true" ]; then
+              echo "- ✅ youtube.response.js updated from upstream" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ℹ️ youtube.response.js unchanged" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            if [ "${{ steps.compare.outputs.sgmodule_needs_update }}" == "true" ]; then
+              echo "- ✅ youtube.sgmodule updated and customized" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "- ℹ️ youtube.sgmodule unchanged" >> $GITHUB_STEP_SUMMARY
+            fi
           else
-            echo "ℹ️ **No Update Needed**" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ **No Updates Needed**" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "The youtube.response.js file is already up to date." >> $GITHUB_STEP_SUMMARY
+            echo "Both youtube.response.js and youtube.sgmodule are already up to date." >> $GITHUB_STEP_SUMMARY
           fi
