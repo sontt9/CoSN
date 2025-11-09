@@ -1,0 +1,24 @@
+#!name=Family Safe - Short Video Blocker
+#!desc=Blocks TikTok & Instagram completely. Blocks only YouTube Shorts & Facebook Reels.
+#!author=FamilySafeTeam
+#!homepage=https://github.com/familysafe/short-video-blocker
+#!icon=https://raw.githubusercontent.com/familysafe/assets/main/icon.png
+
+[Rule]
+# ==========================================
+# TikTok - Complete Domain Block
+# ==========================================
+DOMAIN-SUFFIX,tiktok.com,REJECT
+DOMAIN-SUFFIX,tiktokv.com,REJECT
+DOMAIN-SUFFIX,tiktokcdn.com,REJECT
+DOMAIN-SUFFIX,musical.ly,REJECT
+DOMAIN-SUFFIX,muscdn.com,REJECT
+DOMAIN-SUFFIX,snssdk.com,REJECT
+DOMAIN-SUFFIX,amemv.com,REJECT
+DOMAIN-SUFFIX,ibyteimg.com,REJECT
+DOMAIN-KEYWORD,tiktok,REJECT
+DOMAIN-KEYWORD,musically,REJECT
+
+[URL Rewrite]
+# Redirect blocked TikTok/Instagram to info page
+^https?://.*\.(tiktok|tiktokv|tiktokcdn|musical\.ly)\.com/.* https://dieuphapam.net 302
