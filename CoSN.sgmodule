@@ -1,3 +1,8 @@
+#!name = CoSN
+#!desc = CoSN URL-based blocking rules with required MITM hostnames
+#!author = sontt9
+#!category = 🚫 Ads
+
 [Rule]
 # Spotify blocks
 URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/gabo-receiver-service,REJECT
@@ -13,3 +18,6 @@ URL-REGEX,^https?:\/\/([^\/]+\.)?zalo\.video\/vsocial,REJECT
 URL-REGEX,^https?:\/\/h5\.zadn\.vn\/static\/analytics,REJECT
 URL-REGEX,^https?:\/\/h5\.zalo\.me\/log\/async,REJECT
 URL-REGEX,^https?:\/\/channel-zinstant\.api\.zaloapp\.com\/api\/channel\/zinstant-data,REJECT
+
+[MITM]
+hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com
