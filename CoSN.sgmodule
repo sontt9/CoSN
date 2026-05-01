@@ -19,5 +19,8 @@ URL-REGEX,^https?:\/\/h5\.zadn\.vn\/static\/analytics,REJECT
 URL-REGEX,^https?:\/\/h5\.zalo\.me\/log\/async,REJECT
 URL-REGEX,^https?:\/\/channel-zinstant\.api\.zaloapp\.com\/api\/channel\/zinstant-data,REJECT
 
+[Script]
+Pinterest Home Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\/,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
+
 [MITM]
-hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com
+hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, api.pinterest.com
