@@ -21,13 +21,67 @@ function isPromotedPin(item) {
 
   return (
     item.is_promoted === true ||
+    item.is_shopping_ad === true ||
     item.advertiser_id != null ||
     item.ad_data != null ||
     item.ad_destination_url != null ||
+    item.promoted_ios_deep_link != null ||
     item.ad_targeting_attribution != null ||
+    item.ad_targeting_attribution_reasons != null ||
     item.promoted_is_removable === true ||
     item.promoter != null
   );
+}
+
+function hasPromotedContent(item) {
+  if (!item || typeof item !== "object") return false;
+
+  if (isPromotedPin(item)) {
+    return true;
+  }
+
+  if (
+    item.sponsorship != null ||
+    item.affiliate_disclosure != null ||
+    item.shopping_mdl_browser_type != null ||
+    (item.recommendation_reason &&
+      item.recommendation_reason.reason === "PROMOTED_PIN") ||
+    (item.board && item.board.is_ads_only === true)
+  ) {
+    return true;
+  }
+
+  const nestedCollections = [
+    item.objects,
+    item.data,
+    item.pins,
+    item.results,
+    item.items,
+  ];
+
+  for (const collection of nestedCollections) {
+    if (Array.isArray(collection) && collection.some(hasPromotedContent)) {
+      return true;
+    }
+  }
+
+  const nestedObjects = [
+    item.object,
+    item.pin,
+    item.hero_pin,
+    item.primary_pin,
+    item.story_pin_data,
+    item.collection_pin,
+    item.aggregated_pin_data,
+  ];
+
+  for (const nested of nestedObjects) {
+    if (nested && hasPromotedContent(nested)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function isSearchRecommendation(item) {
@@ -64,20 +118,20 @@ function handleResponse() {
     return body;
   }
 
-  if (/^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\//.test($request.url)) {
+  if (/^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\/(?:\?|$)/.test($request.url)) {
     return filterArray(
       obj,
-      isPromotedPin,
+      hasPromotedContent,
       "promoted item(s) from home feed",
       body,
     );
   }
 
-  if (/^https:\/\/api\.pinterest\.com\/v3\/search\/tab\//.test($request.url)) {
+  if (/^https:\/\/api\.pinterest\.com\/v3\/search\/tab\/(?:\?|$)/.test($request.url)) {
     return filterArray(
       obj,
-      isSearchRecommendation,
-      "search recommendation item(s)",
+      (item) => hasPromotedContent(item) || isSearchRecommendation(item),
+      "search sponsor/recommendation item(s)",
       body,
     );
   }
