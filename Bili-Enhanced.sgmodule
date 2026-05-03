@@ -58,6 +58,9 @@ bilibili.json = type=http-response,pattern=^https:\/\/app\.bilibili\.com\/x\/(?:
 # Bstar Intl account myinfo: VIP/1080P unlock
 bstar.myinfo = type=http-response,pattern=^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/account\/myinfo(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.myinfo.js
 
+# Bstar Intl enhancement: feed/relates/view/playurl/mine
+bstar.enhance = type=http-response,pattern=^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/(?:feed\/home|recommend\/relates|view\/aggregation|playurl\/player|account\/mine\/v\d+)(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.enhance.js
+
 # gRPC response: all protobuf endpoints (Popular, Dynamic, View, PlayURL, Search, DM, Reply, PGC)
 bilibili.protobuf = type=http-response,pattern=^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:show\.v1\.Popular\/Index|dynamic\.v2\.Dynamic\/DynAll|view(?:unite)?\.v1\.View\/(?:View|ViewProgress|RelatesFeed)|playurl\.v1\.PlayURL\/PlayView|playerunite\.v1\.Player\/PlayViewUnite)|polymer\.app\.search\.v1\.Search\/SearchAll|community\.service\.dm\.v1\.DM\/DmView|main\.community\.reply\.v1\.Reply\/MainList|pgc\.gateway\.player\.v2\.PlayURL\/PlayView)$,argument="{\"displayUpList\":\"{{{动态最常访问}}}\",\"purifyComment\":{{{过滤置顶评论广告}}},\"sponsorBlock\":\"{{{空降助手}}}\",\"logLevel\":\"{{{日志等级}}}\"}", requires-body=1,binary-body-mode=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bilibili.protobuf.response.js
 
