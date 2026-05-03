@@ -16,6 +16,13 @@ DOMAIN,app.biliapi.net,REJECT,pre-matching,extended-matching
 AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYWORD,tracker)))),REJECT,pre-matching
 
 [Map Local]
+# Bstar telemetry/log/report endpoints
+^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/data\/report(?:\/.*)?(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/data\/report\/heartbeat\/mobile(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/data\/report\/click\/report2(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.biliintl\.com\/x\/push\/report(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.biliintl\.com\/x\/history\/v\d+\/add(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+
 # Block: top activity, patch tab, search square, VIP ads
 ^https:\/\/ap[ip]\.bilibili\.com\/x\/(?:resource\/(?:top\/activity|patch\/tab(?:\/v2)?)|v2\/search\/square|vip\/ads\/materials)\? header="content-type: application/json" data-type=text data="{\"code\":-404,\"message\":\"-404\",\"ttl\":1,\"data\":null}"
 # Block: PGC activity material delivery
