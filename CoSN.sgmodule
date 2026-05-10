@@ -4,11 +4,12 @@
 #!category = 🚫 Ads
 
 [Rule]
-# Spotify blocks
-URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/gabo-receiver-service,REJECT
-URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/ad-logic,REJECT
-URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/ads,REJECT
-URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/sponsoredplaylist,REJECT
+# Spotify Desktop blocks: ads, sponsored content, telemetry/logging only
+URL-REGEX,^https:\/\/spclient\.wg\.spotify\.com\/ads\/v2\/config(?:\?|$),REJECT
+URL-REGEX,^https:\/\/spclient\.wg\.spotify\.com\/sponsoredplaylist\/v1\/sponsored(?:\?|$),REJECT
+URL-REGEX,^https:\/\/spclient\.wg\.spotify\.com\/gabo-receiver-service\/(?:public\/)?v3\/events\/?(?:\?|$),REJECT
+URL-REGEX,^https:\/\/gae2-spclient\.spotify\.com\/gabo-receiver-service\/(?:public\/)?v3\/events\/?(?:\?|$),REJECT
+URL-REGEX,^https:\/\/gae2-spclient\.spotify\.com\/melody\/v1\/msg\/batch(?:\?|$),REJECT
 
 # Reddit block
 URL-REGEX,^https?:\/\/([^\/]+\.)?reddit\.com\/svc\/shreddit\/events,REJECT
