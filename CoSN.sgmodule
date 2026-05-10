@@ -13,8 +13,22 @@ URL-REGEX,^https?:\/\/([^\/]+\.)?spotify\.com\/sponsoredplaylist,REJECT
 # Reddit block
 URL-REGEX,^https?:\/\/([^\/]+\.)?reddit\.com\/svc\/shreddit\/events,REJECT
 
-# Zalo and related analytics blocks
-URL-REGEX,^https?:\/\/([^\/]+\.)?zalo\.video\/vsocial,REJECT
+# Zalo non-chat blocks: keep core chat/calls and stickers, block video feed/ads/telemetry/discovery
+DOMAIN,al.zalo.video,REJECT
+DOMAIN,qos-talk.123c.vn,REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/vsocial\/,REJECT
+URL-REGEX,^https?:\/\/al\.zalo\.video\/vsocial\/,REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/home\/,REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/user\/core\/get\/ads(?:v2)?(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/user\/core\/get\/ads_boost(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/video\/core\/get\/detail(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/video\/user\/get\/list_video_personal(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/setting\/core\/get\/floating_banner(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/setting\/core\/get\/popup_noti(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/setting\/core\/get\/launch_actions(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/setting\/core\/get\/data_lp_,REJECT
+URL-REGEX,^https?:\/\/discovery\.api\.zaloapp\.com\/api\/build\/layout(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/discovery\.api\.zaloapp\.com\/api\/data(?:\?|$),REJECT
 URL-REGEX,^https?:\/\/h5\.zadn\.vn\/static\/analytics,REJECT
 URL-REGEX,^https?:\/\/h5\.zalo\.me\/log\/async,REJECT
 URL-REGEX,^https?:\/\/channel-zinstant\.api\.zaloapp\.com\/api\/channel\/zinstant-data,REJECT
@@ -38,4 +52,4 @@ Pinterest Related Modules = type=http-response,pattern=^https:\/\/api\.pinterest
 Pinterest Shuffles Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/users\/me\/shuffles\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 
 [MITM]
-hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, api.pinterest.com
+hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, api.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, discovery.api.zaloapp.com, api.pinterest.com
