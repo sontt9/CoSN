@@ -28,60 +28,30 @@ function isPromotedPin(item) {
     item.promoted_ios_deep_link != null ||
     item.ad_targeting_attribution != null ||
     item.ad_targeting_attribution_reasons != null ||
+    item.duplicated_ad_insertions != null ||
     item.promoted_is_removable === true ||
+    item.promoted_is_lead_ad === true ||
+    item.promoted_is_max_video === true ||
+    item.promoted_is_catalog_carousel_ad === true ||
     item.promoter != null
   );
 }
 
-function hasPromotedContent(item) {
+function isSponsoredContainer(item) {
   if (!item || typeof item !== "object") return false;
 
-  if (isPromotedPin(item)) {
-    return true;
-  }
-
-  if (
+  return (
     item.sponsorship != null ||
     item.affiliate_disclosure != null ||
     item.shopping_mdl_browser_type != null ||
     (item.recommendation_reason &&
       item.recommendation_reason.reason === "PROMOTED_PIN") ||
-    (item.board && item.board.is_ads_only === true)
-  ) {
-    return true;
-  }
+    (item.type === "pin" && item.board && item.board.is_ads_only === true)
+  );
+}
 
-  const nestedCollections = [
-    item.objects,
-    item.data,
-    item.pins,
-    item.results,
-    item.items,
-  ];
-
-  for (const collection of nestedCollections) {
-    if (Array.isArray(collection) && collection.some(hasPromotedContent)) {
-      return true;
-    }
-  }
-
-  const nestedObjects = [
-    item.object,
-    item.pin,
-    item.hero_pin,
-    item.primary_pin,
-    item.story_pin_data,
-    item.collection_pin,
-    item.aggregated_pin_data,
-  ];
-
-  for (const nested of nestedObjects) {
-    if (nested && hasPromotedContent(nested)) {
-      return true;
-    }
-  }
-
-  return false;
+function isPromotedItem(item) {
+  return isPromotedPin(item) || isSponsoredContainer(item);
 }
 
 function isSearchRecommendation(item) {
@@ -94,20 +64,79 @@ function isSearchRecommendation(item) {
   );
 }
 
-function filterArray(obj, predicate, label, fallbackBody) {
+function sanitizePromotedContent(value, stats) {
+  if (Array.isArray(value)) {
+    const filtered = [];
+
+    for (const item of value) {
+      if (isPromotedItem(item)) {
+        stats.removed += 1;
+        continue;
+      }
+
+      const sanitized = sanitizePromotedContent(item, stats);
+      if (
+        sanitized &&
+        typeof sanitized === "object" &&
+        sanitized.type === "story" &&
+        Array.isArray(sanitized.objects) &&
+        sanitized.objects.length === 0
+      ) {
+        stats.removed += 1;
+        continue;
+      }
+
+      filtered.push(sanitized);
+    }
+
+    return filtered;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      value[key] = sanitizePromotedContent(value[key], stats);
+    }
+  }
+
+  return value;
+}
+
+function filterPinterestData(obj, predicate, label, fallbackBody) {
   if (!obj || !Array.isArray(obj.data)) {
     return fallbackBody;
   }
 
+  const stats = { removed: 0 };
   const originalCount = obj.data.length;
-  obj.data = obj.data.filter((item) => !predicate(item));
-  const removedCount = originalCount - obj.data.length;
 
-  if (removedCount > 0) {
-    console.log(`Pinterest filter: removed ${removedCount} ${label}`);
+  obj.data = obj.data.filter((item) => {
+    if (predicate && predicate(item)) {
+      stats.removed += 1;
+      return false;
+    }
+    return true;
+  });
+
+  obj.data = sanitizePromotedContent(obj.data, stats);
+
+  const topLevelRemoved = originalCount - obj.data.length;
+  if (stats.removed > 0 || topLevelRemoved > 0) {
+    console.log(
+      `Pinterest filter: removed ${Math.max(stats.removed, topLevelRemoved)} ${label}`,
+    );
   }
 
   return stringifyBody(obj, fallbackBody);
+}
+
+function shouldFilterPinterestResponse(url) {
+  return /^https:\/\/api\.pinterest\.com\/v3\/(?:feeds\/home|search\/tab|boards\/[^/]+\/ideas\/feed|pins\/[^/]+\/related\/modules|users\/me\/shuffles)\/(?:\?|$)/.test(
+    url,
+  );
 }
 
 function handleResponse() {
@@ -118,25 +147,16 @@ function handleResponse() {
     return body;
   }
 
-  if (/^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\/(?:\?|$)/.test($request.url)) {
-    return filterArray(
-      obj,
-      hasPromotedContent,
-      "promoted item(s) from home feed",
-      body,
-    );
+  if (!shouldFilterPinterestResponse($request.url)) {
+    return body;
   }
 
-  if (/^https:\/\/api\.pinterest\.com\/v3\/search\/tab\/(?:\?|$)/.test($request.url)) {
-    return filterArray(
-      obj,
-      (item) => hasPromotedContent(item) || isSearchRecommendation(item),
-      "search sponsor/recommendation item(s)",
-      body,
-    );
-  }
-
-  return body;
+  return filterPinterestData(
+    obj,
+    isSearchRecommendation,
+    "Pinterest sponsored item(s)",
+    body,
+  );
 }
 
 $done({ body: handleResponse() });

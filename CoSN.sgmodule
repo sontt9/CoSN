@@ -33,6 +33,9 @@ DOMAIN,iprofiles.apple.com,REJECT
 [Script]
 Pinterest Home Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 Pinterest Search Tab = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/search\/tab\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
+Pinterest Board Ideas Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/boards\/[^/]+\/ideas\/feed\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
+Pinterest Related Modules = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/pins\/[^/]+\/related\/modules\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
+Pinterest Shuffles Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/users\/me\/shuffles\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 
 [MITM]
 hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, api.pinterest.com
