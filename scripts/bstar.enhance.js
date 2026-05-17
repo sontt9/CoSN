@@ -94,7 +94,7 @@ try {
     patchRelates(obj);
   } else if (/\/intl\/gateway\/v\d+\/app\/view\/aggregation(?:\?|$)/.test(url)) {
     patchViewAggregation(obj);
-  } else if (/\/intl\/gateway\/v\d+\/app\/playurl\/player(?:\?|$)/.test(url)) {
+  } else if (/\/intl\/gateway\/v\d+\/(?:app\/playurl\/player|ogv\/playurl)(?:\?|$)/.test(url)) {
     patchPlayurl(obj);
   } else if (/\/intl\/gateway\/v\d+\/app\/account\/mine\/v\d+(?:\?|$)/.test(url)) {
     patchMine(obj);

@@ -15,6 +15,13 @@ DOMAIN,app.biliapi.net,REJECT,pre-matching,extended-matching
 # Block P2P CDN and tracking
 AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYWORD,tracker)))),REJECT,pre-matching
 
+[URL Rewrite]
+# Vietnam/SEA Bili Intl: remove SIM-region parameter so app falls back to account/IP region
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?)sim_code=\d+&(.+)$ $1$2 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?[^#]*?)&sim_code=\d+(&.*)$ $1$2 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?[^#]*?)&sim_code=\d+$ $1 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+)\?sim_code=\d+$ $1 302
+
 [Map Local]
 # Bstar telemetry/log/report endpoints
 ^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/data\/report(?:\/.*)?(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
@@ -63,13 +70,13 @@ bilibili.live = type=http-response,pattern=^https:\/\/api\.live\.bilibili\.com\/
 bilibili.json = type=http-response,pattern=^https:\/\/app\.bilibili\.com\/x\/(?:resource\/show\/tab\/v2|v2\/(?:splash\/(?:list|show|event\/list2)|feed\/index(?:\/story)?|account\/(?:mine(?:\/ipad)?|myinfo)))\?,argument="{\"showCreatorHub\":{{{创作中心}}}}", requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bilibili.json.js
 
 # Bstar Intl account myinfo: VIP/1080P unlock
-bstar.myinfo = type=http-response,pattern=^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/account\/myinfo(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.myinfo.js
+bstar.myinfo = type=http-response,pattern=^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/app\/account\/myinfo(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.myinfo.js
 
-# Bstar Intl enhancement: feed/relates/view/playurl/mine
-bstar.enhance = type=http-response,pattern=^https:\/\/app\.biliintl\.com\/intl\/gateway\/v\d+\/app\/(?:feed\/home|recommend\/relates|view\/aggregation|playurl\/player|account\/mine\/v\d+)(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.enhance.js
+# Bstar Intl enhancement: feed/relates/view/playurl/mine plus global OGV playurl
+bstar.enhance = type=http-response,pattern=^https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/(?:app\/(?:feed\/home|recommend\/relates|view\/aggregation|playurl\/player|account\/mine\/v\d+)|ogv\/playurl)(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.enhance.js
 
 # gRPC response: all protobuf endpoints (Popular, Dynamic, View, PlayURL, Search, DM, Reply, PGC)
 bilibili.protobuf = type=http-response,pattern=^https:\/\/(?:grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(?:app\.(?:show\.v1\.Popular\/Index|dynamic\.v2\.Dynamic\/DynAll|view(?:unite)?\.v1\.View\/(?:View|ViewProgress|RelatesFeed)|playurl\.v1\.PlayURL\/PlayView|playerunite\.v1\.Player\/PlayViewUnite)|polymer\.app\.search\.v1\.Search\/SearchAll|community\.service\.dm\.v1\.DM\/DmView|main\.community\.reply\.v1\.Reply\/MainList|pgc\.gateway\.player\.v2\.PlayURL\/PlayView)$,argument="{\"displayUpList\":\"{{{动态最常访问}}}\",\"purifyComment\":{{{过滤置顶评论广告}}},\"sponsorBlock\":\"{{{空降助手}}}\",\"logLevel\":\"{{{日志等级}}}\"}", requires-body=1,binary-body-mode=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bilibili.protobuf.response.js
 
 [MITM]
-hostname = %APPEND% grpc.biliapi.net, app.bilibili.com, api.bilibili.com, api.live.bilibili.com, line3-h5-mobile-api.biligame.com, app.biliintl.com
+hostname = %APPEND% grpc.biliapi.net, app.bilibili.com, api.bilibili.com, api.live.bilibili.com, line3-h5-mobile-api.biligame.com, app.biliintl.com, api.biliintl.com, app.global.bilibili.com, api.global.bilibili.com, www.bilibili.tv

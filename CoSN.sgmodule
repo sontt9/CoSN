@@ -49,6 +49,40 @@ DOMAIN,deviceenrollment.apple.com,REJECT
 DOMAIN,mdmenrollment.apple.com,REJECT
 DOMAIN,iprofiles.apple.com,REJECT
 
+# Bilibili/Bili Intl ad, telemetry, P2P, and Vietnam-friendly region cleanup
+DOMAIN,api.biliapi.com,REJECT,pre-matching,extended-matching
+DOMAIN,app.biliapi.com,REJECT,pre-matching,extended-matching
+DOMAIN,api.biliapi.net,REJECT,pre-matching,extended-matching
+DOMAIN,app.biliapi.net,REJECT,pre-matching,extended-matching
+AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYWORD,tracker)))),REJECT,pre-matching
+URL-REGEX,^https?:\/\/app\.bilibili\.com\/x\/resource\/ip(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/app\.bilibili\.com\/x\/resource\/top\/activity(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/app\.bilibili\.com\/x\/v2\/search\/defaultwords(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/app\.bilibili\.com\/bilibili\.app\.interface\.v1\.Search\/Default(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.bilibili\.com\/x\/vip\/ads\/material\/report(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.bilibili\.com\/pgc\/season\/player\/cards(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.vc\.bilibili\.com\/search_svr\/v\d+\/Search\/recommend_words(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.vc\.bilibili\.com\/topic_svr\/v1\/topic_svr(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.bilibili\.com\/pgc\/season\/app\/related\/recommend(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/manga\.bilibili\.com\/twirp\/comic\.v\d+\.Comic\/(?:Flash|ListFlash)(?:\?|$),REJECT
+URL-REGEX,^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/app\/data\/report(?:\/.*)?(?:\?|$),REJECT
+URL-REGEX,^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/x\/push\/report(?:\?|$),REJECT
+
+[URL Rewrite]
+# Bili Intl Vietnam/SEA: strip SIM-region parameter; helps when a VN SIM forces the wrong Bstar region.
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?)sim_code=\d+&(.+)$ $1$2 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?[^#]*?)&sim_code=\d+(&.*)$ $1$2 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+\?[^#]*?)&sim_code=\d+$ $1 302
+^(https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/[^?]+)\?sim_code=\d+$ $1 302
+
+[Map Local]
+# Bili Intl telemetry/log/report endpoints
+^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/app\/data\/report(?:\/.*)?(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/x\/push\/report(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(?:show|list)(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":0,\"message\":\"0\",\"ttl\":1,\"data\":{}}"
+^https:\/\/app\.bilibili\.com\/x\/v2\/search\/defaultwords(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":-404,\"message\":\"-404\",\"ttl\":1,\"data\":null}"
+^https:\/\/api\.bilibili\.com\/x\/vip\/ads\/material\/report(?:\?|$) header="content-type: application/json" data-type=text data="{\"code\":-404,\"message\":\"-404\",\"ttl\":1,\"data\":null}"
+
 [Script]
 Pinterest Home Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/feeds\/home\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 Pinterest Search Tab = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/search\/tab\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
@@ -56,5 +90,9 @@ Pinterest Board Ideas Feed = type=http-response,pattern=^https:\/\/api\.pinteres
 Pinterest Related Modules = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/pins\/[^/]+\/related\/modules\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 Pinterest Shuffles Feed = type=http-response,pattern=^https:\/\/api\.pinterest\.com\/v3\/users\/me\/shuffles\/(?:\?|$),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/pinterest.js,timeout=10
 
+# Bili Intl account and media enhancements for Vietnam/SEA users
+Bstar MyInfo = type=http-response,pattern=^https:\/\/(?:app\.biliintl\.com|app\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/app\/account\/myinfo(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.myinfo.js,timeout=10
+Bstar Enhance = type=http-response,pattern=^https:\/\/(?:app\.biliintl\.com|api\.biliintl\.com|app\.global\.bilibili\.com|api\.global\.bilibili\.com)\/intl\/gateway\/v\d+\/(?:app\/(?:feed\/home|recommend\/relates|view\/aggregation|playurl\/player|account\/mine\/v\d+)|ogv\/playurl)(?:\?|$),requires-body=1,max-size=-1,engine=webview,script-path=https://raw.githubusercontent.com/sontt9/CoSN/main/scripts/bstar.enhance.js,timeout=10
+
 [MITM]
-hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, api.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, discovery.api.zaloapp.com, api.pinterest.com
+hostname = %APPEND% spotify.com, *.spotify.com, reddit.com, *.reddit.com, zalo.video, *.zalo.video, api.zalo.video, h5.zadn.vn, h5.zalo.me, channel-zinstant.api.zaloapp.com, discovery.api.zaloapp.com, api.pinterest.com, app.bilibili.com, api.bilibili.com, api.vc.bilibili.com, api.live.bilibili.com, manga.bilibili.com, grpc.biliapi.net, api.biliapi.net, app.biliintl.com, api.biliintl.com, app.global.bilibili.com, api.global.bilibili.com, www.bilibili.tv
