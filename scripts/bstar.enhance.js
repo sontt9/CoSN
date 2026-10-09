@@ -21,10 +21,10 @@ function isObject(v) {
 function removeAdCards(list) {
   if (!Array.isArray(list)) return list;
   return list.filter((item) => {
-    if (!isObject(item)) return false;
+    if (!isObject(item)) return true;
     const cardType = String(item.card_type || "").toLowerCase();
     const gotoType = String(item.goto || item.card_goto || "").toLowerCase();
-    if (cardType.includes("ad") || gotoType.includes("ad")) return false;
+    if (cardType === "ad" || gotoType === "ad") return false;
     if (isObject(item.ad) || isObject(item.ad_info)) return false;
     return true;
   });

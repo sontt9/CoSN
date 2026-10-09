@@ -22,18 +22,10 @@ function isPromotedPin(item) {
   return (
     item.is_promoted === true ||
     item.is_shopping_ad === true ||
-    item.advertiser_id != null ||
-    item.ad_data != null ||
-    item.ad_destination_url != null ||
-    item.promoted_ios_deep_link != null ||
-    item.ad_targeting_attribution != null ||
-    item.ad_targeting_attribution_reasons != null ||
-    item.duplicated_ad_insertions != null ||
     item.promoted_is_removable === true ||
     item.promoted_is_lead_ad === true ||
     item.promoted_is_max_video === true ||
-    item.promoted_is_catalog_carousel_ad === true ||
-    item.promoter != null
+    item.promoted_is_catalog_carousel_ad === true
   );
 }
 
@@ -41,9 +33,6 @@ function isSponsoredContainer(item) {
   if (!item || typeof item !== "object") return false;
 
   return (
-    item.sponsorship != null ||
-    item.affiliate_disclosure != null ||
-    item.shopping_mdl_browser_type != null ||
     (item.recommendation_reason &&
       item.recommendation_reason.reason === "PROMOTED_PIN") ||
     (item.type === "pin" && item.board && item.board.is_ads_only === true)
@@ -52,16 +41,6 @@ function isSponsoredContainer(item) {
 
 function isPromotedItem(item) {
   return isPromotedPin(item) || isSponsoredContainer(item);
-}
-
-function isSearchRecommendation(item) {
-  if (!item || typeof item !== "object") return false;
-
-  return (
-    item.story_type === "slp_search_recommendation" ||
-    (item.aux_fields &&
-      item.aux_fields.story_type === "slp_search_recommendation")
-  );
 }
 
 function sanitizePromotedContent(value, stats) {
@@ -74,13 +53,15 @@ function sanitizePromotedContent(value, stats) {
         continue;
       }
 
+      const originalObjectsCount = item && Array.isArray(item.objects) ? item.objects.length : 0;
       const sanitized = sanitizePromotedContent(item, stats);
       if (
         sanitized &&
         typeof sanitized === "object" &&
         sanitized.type === "story" &&
         Array.isArray(sanitized.objects) &&
-        sanitized.objects.length === 0
+        sanitized.objects.length === 0 &&
+        originalObjectsCount > 0
       ) {
         stats.removed += 1;
         continue;
@@ -98,7 +79,10 @@ function sanitizePromotedContent(value, stats) {
 
   for (const key in value) {
     if (Object.prototype.hasOwnProperty.call(value, key)) {
-      value[key] = sanitizePromotedContent(value[key], stats);
+      // Only traverse known content collections, not arbitrary metadata/cursor arrays.
+      if (["objects", "items", "pins", "modules"].includes(key)) {
+        value[key] = sanitizePromotedContent(value[key], stats);
+      }
     }
   }
 
@@ -130,7 +114,7 @@ function filterPinterestData(obj, predicate, label, fallbackBody) {
     );
   }
 
-  return stringifyBody(obj, fallbackBody);
+  return stats.removed > 0 ? stringifyBody(obj, fallbackBody) : fallbackBody;
 }
 
 function shouldFilterPinterestResponse(url) {
@@ -153,7 +137,7 @@ function handleResponse() {
 
   return filterPinterestData(
     obj,
-    isSearchRecommendation,
+    null,
     "Pinterest sponsored item(s)",
     body,
   );

@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/Maasea/sgmodule",
+  "revision": "65075cdb388fc5e3094afd7e7314c67b243f3525",
+  "upstream_sha256": {
+    "youtube.sgmodule": "9c7464733c54417da36aff09482d1287cee5ecd531ad856842912704b5b3f64d",
+    "youtube.response.js": "f98483d5f5017514f82502253c0db5ce2d4ffb7839887aa2cadc22666f5a7f12",
+    "youtube.request.js": "3ecca15e06e76a31720092c581180f648ef2c45e494644941ba985c878efbb26"
+  },
+  "modifications": [
+    "disable initplayback external Worker handler",
+    "remove key debug logging",
+    "bind reviewed CoSN scripts",
+    "default Focus controls off; retain argument placeholders"
+  ]
+}

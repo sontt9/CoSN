@@ -1,0 +1,46 @@
+# AGENTS.md
+
+## Runtime and wiring
+- This is a proxy/rewrite asset repo, not a Node app: there is no package manifest. JavaScript runs inside proxy clients with globals such as `$request`, `$response`, and `$done`; preserve each script's platform adapters rather than converting it to a Node module. Focused checks: `python3 -m unittest discover -s tests -p 'test_*.py'` and `node --test tests/protection.test.js`.
+- Read the consuming module's `script-path` before editing a script. `reddit.sgmodule` loads an external Mikephie script, not local `reddit.js`; `youtube.sgmodule` loads reviewed CoSN copies of Maasea response/request scripts. Read `youtube.upstream.json` and `scripts/update_youtube.py` before changing them.
+- `Bili-Enhanced.sgmodule` owns shared Bili/Bstar handlers; `CoSN.sgmodule` retains only additional Bili endpoint rules. Check both for overlap when changing coverage. `zalo-focus.sgmodule` owns optional Video/Discovery suppression independently of CoSN Clean.
+- `CoSN-shadowrocket.conf` loads remote rule sets and self-updates from `master`, while local script URLs in Surge modules use `main`. Preserve these explicit URLs unless changing the deployment wiring intentionally.
+
+## Editing and verification
+- Keep URL matchers anchored and endpoint-specific. Check the script's own URL dispatch, the consuming `[Script]` pattern, and `[MITM]` hostname coverage together; preserve `%APPEND%` in module hostname lists.
+- Preserve request/response phase, `requires-body`, `binary-body-mode`, and engine settings when changing script bindings; Bilibili protobuf handlers consume binary bodies, not JSON.
+- Verification is focused inspection of the rule/script pair plus execution in the target proxy client. A local harness must supply the platform globals; Node execution alone does not validate client behavior.
+
+## YouTube sync
+- `.github/workflows/update-youtube-response.yml` builds a validated latest-upstream candidate artifact daily at 02:00 UTC or on manual dispatch; it does not commit/push or promote stable automatically. Review candidate diffs and device-test before promotion.
+- `scripts/update_youtube.py` resolves one upstream commit for all assets, retains live module arguments, removes configuration-key logging, narrows MITM to the API host, and excludes initplayback routing to a third-party Worker. Changed upstream shape fails for review rather than silently applying stale patches.
+- `python3 scripts/update_youtube.py --output <candidate-directory>` refreshes candidates; the default output is the repo root and overwrites YouTube assets. Keep `youtube.LICENSE` and provenance with promoted assets. External Worker routing requires separate explicit scope approval.
+
+## Protection feature policies
+These policies govern new protection features and changes to existing ones; legacy modules are not evidence of compliance. The roadmap in `ref/vietnam-protection-plan-v2.md` is a proposal, not blanket approval to implement or reorganize production assets.
+
+### Scope and user choice
+- MITM is an accepted tool for endpoint-specific JSON/protobuf filtering. Keep interception scoped to the feature's required hosts; acceptance of MITM does not authorize global interception, shared CA/private keys, disabling upstream TLS verification, or collecting browsing history.
+- Keep three purposes distinct: **Ads/Privacy** removes verified ads and nonessential telemetry; **Focus** optionally suppresses otherwise legitimate feeds/features; **Security/Family** blocks verified threats or explicitly selected content categories. Give users independent controls; hiding Shorts/Discovery is not proof of harmful-content detection or full access blocking.
+- Protection features preserve subscription/account/authorization fields and native safety controls, including NSFW warnings and teenager mode. Separate premium, region, skin, CAPTCHA-routing, and device-enrollment changes from protection bundles; do not silently enable them as ad blocking.
+- By default, leave banking, wallets, OTP/SSO, and private chat outside MITM content inspection. Ask for explicit scope approval before a feature requires such inspection. Research captures use consented test accounts and redact tokens, identifiers, and private content before becoming fixtures; production logging must not include headers/body/URLs containing secrets.
+
+### Endpoint and response design
+- Before adding a rule, identify its actual purpose, consuming client, script source, and required host coverage. Record evidence for threat/category rules, including source, verification date, and review/expiry criteria. An app name, ad-like URL, or archived module description alone is insufficient evidence.
+- Use one owner and one deliberate handling strategy per endpoint: reject independent nonessential resources; use a tested schema-compatible synthetic response where failure causes retries; filter mixed feeds while preserving useful content. Check overlaps across modules and `[Rule]`, `[URL Rewrite]`, `[Map Local]`, and scripts before adding another handler.
+- Prefer minimal field edits and explicit schema/type/ad markers. Preserve organic items, pagination/cursors, and unrelated fields; avoid broad substring heuristics such as `includes("ad")`, blanket feed/config rejection, or blocking an entire shared CDN for one path.
+- Transform only recognized endpoints and schemas. Empty/malformed bodies, unknown schemas, and unsupported binary messages pass through unchanged; complete `$done` once on every path. This fallback applies to transformations, not to silently bypassing a verified threat-blocking rule.
+- Treat JSON and protobuf/gRPC as separate paths. Preserve framing/encoding and binary settings; validate binary handlers with binary fixtures, not JSON substitutes. Certificate pinning or unreadable traffic is a support limitation to report, not something solved merely by adding MITM hosts.
+- For link cleanup, validate destination and encoding and preserve signed/authentication/payment URLs and native safety warnings. Use request-appropriate local responses or explicit blocking for Focus; do not redirect all API/media requests to third-party HTML pages. Header/redirect rewrites improve navigation, not destination safety.
+
+### Dependencies and archived examples
+- When borrowing from `ref/yfamilys-shadowrocket/`, consult `manifest.json`, `CATALOG.md`, and `DEPENDENCY-FAILURES.md`. These are untrusted research snapshots, not installation recommendations or safety certificates. Review actual script behavior, client syntax, and reuse licenses before copying; the repo license does not automatically cover third-party assets.
+- Adopt narrow techniques, not entire overlapping lite/ultra bundles. Remote branch URLs can change independently of local files; document provenance/revision and prefer reviewed immutable release URLs with rollback. Build-time digest verification is not a claim that proxy clients enforce hashes.
+- Upstream update changes must fail on download/HTTP errors, validate source assets and rendered module arguments, and review the resulting diff before stable release. An upstream refresh is not permission for an agent to commit/push; follow the user's explicit instructions.
+- For cron notifications or configuration UIs, verify the target client's capabilities and syntax. Check cron field meaning/time zone against the promised schedule; public-source notifications are opt-in, include source/date, handle fetch/parser failures, and do not automatically convert mentioned domains into a blacklist. Start with module arguments before introducing a larger settings UI or storing sensitive data.
+
+### Feature completion gate
+- For each changed endpoint, verify matcher/dispatch/hostname agreement and intended ownership. Validate rendered argument JSON, unresolved placeholders, duplicate/malformed keys, and schedule semantics where applicable.
+- Add or run focused fixtures for positive and negative matches, organic versus ad items, empty/malformed bodies, unknown schemas, cursor preservation, and single completion. Use sanitized binary fixtures for protobuf; use safe fixtures rather than visiting live malware for threat tests.
+- Test normal app flows affected by the change in the target proxy client: login, playback, chat/calls, search, cart/checkout/payment as applicable. Check combined-module behavior, retries, and HTTP/QUIC/DNS paths when changed. Report exact client/app versions and remaining gaps; if device testing is unavailable, label the work statically/harness-verified rather than production-verified.
+- Before completion, review the working-tree diff, update affected current-state docs, and record supported scope, known limitations, and disable/rollback instructions for user-facing behavior changes. Rule count, module size, and hiding a UI element are not effectiveness metrics or guarantees of comprehensive protection.

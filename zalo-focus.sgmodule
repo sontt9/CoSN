@@ -1,0 +1,16 @@
+#!name = Zalo Focus (optional)
+#!desc = Suppress Zalo Video, Discovery and channel feeds. Not harmful-content detection. Disable this module to restore those features.
+#!category = Focus
+
+[Rule]
+URL-REGEX,^https?:\/\/api\.zalo\.video\/vsocial\/,REJECT
+URL-REGEX,^https?:\/\/al\.zalo\.video\/vsocial\/,REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/home\/,REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/video\/core\/get\/detail(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/api\.zalo\.video\/v1\/video\/user\/get\/list_video_personal(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/discovery\.api\.zaloapp\.com\/api\/build\/layout(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/discovery\.api\.zaloapp\.com\/api\/data(?:\?|$),REJECT
+URL-REGEX,^https?:\/\/channel-zinstant\.api\.zaloapp\.com\/api\/channel\/zinstant-data(?:\?|$),REJECT
+
+[MITM]
+hostname = %APPEND% api.zalo.video, al.zalo.video, discovery.api.zaloapp.com, channel-zinstant.api.zaloapp.com
